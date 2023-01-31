@@ -19,6 +19,7 @@ public class OS {
     private static int PTR = 0;
     private static int VA = 0;
     private static int RA = 0;
+    private static int sRA = 0;
     private static int kio = -1;
 
     // interupts
@@ -71,37 +72,40 @@ public class OS {
         char[] str = new char[2];
 
         while (check != 1) {
-            kio++; // 0
-            pos = Math.abs((rd.nextInt() % 29) * 10); // 140
+            kio++; // 1
+            pos = Math.abs((rd.nextInt() % 29) * 10); // 170
             while (flag[pos / 10] != 0) {
                 pos = Math.abs((rd.nextInt() % 29) * 10);
             }
-            flag[pos / 10] = 1; // 14 = 1
-            str = Integer.toString(pos).toCharArray(); // 140
+            flag[pos / 10] = 1; // 17 = 1
+            str = Integer.toString(pos).toCharArray(); // 170
+            System.out.println(pos);
             if (pos / 100 == 0) {
-                M[PTR + kio][2] = '0';
-                M[PTR + kio][3] = str[0];
+                M[PTR + kio][2] = '0'; // 28 -> **0*
+                M[PTR + kio][3] = str[0]; // 20 -> **09
             } else {
-                M[PTR + kio][2] = str[0]; // 240 -> **1*
-                M[PTR + kio][3] = str[1]; // 240 -> **14
+                M[PTR + kio][2] = str[0]; //
+                M[PTR + kio][3] = str[1];
             }
             try {
-                line = fread.readLine(); // GD20PD20H
-                buffer = line.toCharArray();
-                level++; // 1
+                line = fread.readLine(); // H
+                buffer = line.toCharArray(); // H
+                level++; // 3
                 int k = 0;
-                for (int i = 0; i < line.length() / 4; i++) { // 3 times
+                for (int i = 0; i < (line.length() / 4) + 1; i++) { // 1 times
                     for (int j = 0; j < 4; j++) { // 4 times
-                        System.out.println(buffer[k]);
-                        M[pos + i][j] = buffer[k]; // 140 -> GD20 // 141 -> PD20 // 142 -> H
-                        k++; // 8
-                        if (buffer[k] == 'H') {
+                        if (buffer[k] != 'H') {
+                            System.out.println(buffer[k]);
+                            M[pos + i][j] = buffer[k]; // 20[0] -> H
+                        } else {
                             check = 1;
-                            M[pos + (i + 1)][0] = 'H'; // 143 -> H
-                            M[pos + (i + 1)][1] = '0'; // 143 -> H0
-                            M[pos + (i + 1)][2] = '0'; // 143 -> H00
-                            M[pos + (i + 1)][3] = '0'; // 143 -> H000
+                            M[pos + (i)][0] = 'H'; // 125 -> H
+                            M[pos + (i)][1] = '0'; // 125 -> H0
+                            M[pos + (i)][2] = '0'; // 125 -> H00
+                            M[pos + (i)][3] = '0'; // 125 -> H000
+                            break;
                         }
+                        k++; // 40
                     }
                 }
             } catch (Exception e) {
@@ -112,7 +116,6 @@ public class OS {
 
     public void MOS() {
         try {
-
             if (PI == 1) {
                 System.out.println("4: Opcode Error. Program terminated abnormally.");
                 fwrite.write("4: Opcode Error. Program terminated abnormally.");
@@ -135,6 +138,7 @@ public class OS {
                 }
             } else if (SI == 2) {
                 if (TI == 0) {
+                    System.out.println("Going to call write");
                     write();
                 } else if (TI == 2) {
                     write();
@@ -154,30 +158,34 @@ public class OS {
     }
 
     public void endProgram() {
+        dispMemo();
         try {
             fwrite.write("SI: " + SI + " PI: " + PI + " TI: " + TI + "TTC: " + TTC + " LLC: " + LLC);
             System.out.println("SI: " + SI + " PI: " + PI + " TI: " + TI + "TTC: " + TTC + " LLC: " + LLC);
-            fwrite.close();
+            fwrite.newLine();
+            fwrite.newLine();
+            // fwrite.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.exit(0);
+        // System.exit(0);
     }
 
     public void read() {
         int no;
         try {
-            line = fread.readLine();
+            line = fread.readLine(); // *
             buffer = line.toCharArray();
             // convert M[RA][2] and M[RA][3] to integer
-            no = Integer.parseInt(String.valueOf(M[RA][2]) + String.valueOf(M[RA][3]));
-            no = no * 10; // 20
+            // no = Integer.parseInt(String.valueOf(M[RA][2]) + String.valueOf(M[RA][3]));
+            // no = no * 10; // 210
+            no = sRA;
             int k = 0;
 
             for (int i = 0; k < line.length(); i++) { // i = 1
-                for (int j = 0; j < 4 && k <= line.length(); j++) { // j = 1
-                    M[no + i][j] = buffer[k]; // m[20][0] = H, M[20][1] = E, M[20][2] = L, M[20][3] = L, M[21][0] = O
-                    k++; // 5
+                for (int j = 0; j < 4 && k < line.length(); j++) { // j = 1
+                    M[no + i][j] = buffer[k]; // 210 -> *
+                    k++; // 1
                 }
             }
 
@@ -188,17 +196,20 @@ public class OS {
     }
 
     public void write() {
+        System.out.println("Inside Write");
         int no;
         try {
-            no = Integer.parseInt(String.valueOf(M[RA][2]) + String.valueOf(M[RA][3]));
-            no = no * 10; // 20
+            // no = Integer.parseInt(String.valueOf(M[RA][2]) + String.valueOf(M[RA][3]));
+            // no = no * 10; // 120
+            no = sRA;
             int k = 0;
             while (true) {
                 for (int i = 0; i < 4; i++) {
                     if (M[no][i] == '\0') {
                         break;
                     }
-                    buffer[k] = M[no][i];
+                    // buffer[k] = M[no][i];
+                    fwrite.write(M[no][i]);
                     k++;
                 }
                 if (M[no][0] == '\0') {
@@ -206,8 +217,9 @@ public class OS {
                 }
                 no++;
             }
-
-            fwrite.write(buffer);
+            System.out.println(buffer);
+            // fwrite.write(buffer);
+            // fwrite.newLine();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -216,23 +228,24 @@ public class OS {
     public void addMap() {
         int add, pos;
         char[] str = new char[2];
-        RA = PTR + (VA / 10); // 240
+
+        RA = PTR + (VA / 10);
 
         if (M[RA][3] == '*') {
             System.out.println("Page fault occur");
-            pos = Math.abs((rd.nextInt() % 29) * 10); // 210
+            pos = Math.abs((rd.nextInt() % 29) * 10); // 160
             while (flag[pos / 10] != 0) {
                 pos = Math.abs((rd.nextInt() % 29) * 10);
             }
-            flag[pos / 10] = 1; // 21 = 1
+            flag[pos / 10] = 1; // 16 = 1
 
-            str = Integer.toString(pos).toCharArray(); // 210
+            str = Integer.toString(pos).toCharArray(); // 160
             if (pos / 100 == 0) {
                 M[RA][2] = '0';
                 M[RA][3] = str[0];
             } else {
-                M[RA][2] = str[0]; // 242 -> **2*
-                M[RA][3] = str[1]; // 242 -> **21
+                M[RA][2] = str[0]; // 12 -> **1*
+                M[RA][3] = str[1]; // 12 -> **16
             }
 
             PI = 3;
@@ -244,10 +257,13 @@ public class OS {
             PI = 2;
             MOS();
         }
+        int PTE = PTR + (VA / 10); // 263
+        int mpte = Integer.parseInt(String.valueOf(M[PTE][2]) + String.valueOf(M[PTE][3])); // 16
+        sRA = mpte * 10 + (VA % 10);
     }
 
     public void examine() {
-        char ch = IR[0];
+        char ch = IR[0]; // S
         PI = 0;
 
         switch (ch) {
@@ -258,7 +274,7 @@ public class OS {
                     MOS();
                 } else {
                     TTC = TTC + 2;
-                    if (TTC <= pcb.ttl) {
+                    if (TTC <= pcb.ttl) { // ttc = 2
                         SI = 1;
                         MOS();
                     } else {
@@ -275,18 +291,29 @@ public class OS {
                     PI = 1;
                     MOS();
                 } else {
-                    LLC = LLC + 1;
-                    TTC = TTC + 1;
-                    if (LLC < pcb.tll) {
+                    System.out.println(pcb.tll);
+                    System.out.println(LLC);
+                    LLC = LLC + 1; // 1
+                    System.out.println(LLC);
+                    TTC = TTC + 1; // 3
+                    if (LLC > pcb.tll) {
+                        System.out.println("Inside LLC < tll");
                         TI = 0;
                         MOS();
                     }
                     if (TTC > pcb.ttl) {
+                        System.out.println("Inside TTC < ttl");
                         TI = 1;
                         MOS();
                     } else {
                         SI = 2;
+                        System.out.println("Going to call MOS");
                         MOS();
+                        try {
+                            fwrite.newLine();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
                 System.out.println("SI:" + SI + " TI:" + TI + " PI:" + PI + "TTC: " + TTC + " LLC: " + LLC);
@@ -299,8 +326,13 @@ public class OS {
                 } else {
                     TTC++;
                     if (TTC <= pcb.ttl) {
-                        for (int i = 0; i < 4; i++)
-                            R[i] = M[RA][i];
+                        for (int i = 0; i < 4; i++) {
+                            // get 2 and 3rd index of RA
+                            // int no = Integer.parseInt(String.valueOf(M[RA][2]) +
+                            // String.valueOf(M[RA][3]));
+                            // no = no * 10;
+                            R[i] = M[sRA][i];
+                        }
                     } else {
                         TI = 2;
                         MOS();
@@ -316,8 +348,10 @@ public class OS {
                 } else {
                     TTC++;
                     if (TTC <= pcb.ttl) {
-                        for (int i = 0; i < 4; i++)
-                            M[RA][i] = R[i];
+                        System.out.println("Inside TTC check");
+                        for (int i = 0; i < 4; i++) {
+                            M[sRA][i] = R[i];
+                        }
                     } else {
                         TI = 2;
                         MOS();
@@ -335,7 +369,7 @@ public class OS {
                     if (TTC <= pcb.ttl) {
                         int res = 0;
                         for (int i = 0; i < 4; i++)
-                            if (M[RA][i] != R[i])
+                            if (M[sRA][i] != R[i])
                                 res = 1;
                         C = res;
                         res = 0;
@@ -378,20 +412,20 @@ public class OS {
     public void executeProgram() {
         int no;
         char[] a = new char[3];
-        for (int i = 0; i <= kio; i++) {
-            a[0] = M[PTR + i][2]; // 240 -> **14 = 1
-            a[1] = M[PTR + i][3]; // 240 -> **14 = 4
+        for (int i = 0; i <= kio; i++) { // kio = 2
+            a[0] = M[PTR + i][2]; //
+            a[1] = M[PTR + i][3]; // 04
             a[2] = '\0';
 
-            no = Integer.parseInt(String.valueOf(a).trim()); // 14
+            no = Integer.parseInt(String.valueOf(a).trim()); // 4
             for (int j = 0; j < 10; j++) {
                 for (int k = 0; k < 4; k++) {
                     IR[k] = M[no * 10 + j][k];
-                } // IR = ####
+                } // IR = GD30
                 if (IR[0] != '\0') {
                     System.out.println("IR: " + String.valueOf(IR).trim());
 
-                    VA = Integer.parseInt(String.valueOf(IR).substring(2, 4)); // 00
+                    VA = Integer.parseInt(String.valueOf(IR).substring(2, 4)); // 20
                     System.out.println("VA: " + VA);
                     addMap();
                     examine();
@@ -407,12 +441,12 @@ public class OS {
 
     public void initialize() {
         int i, j;
-        PTR = Math.abs((rd.nextInt() % 29) * 10); // 240
+        PTR = Math.abs((rd.nextInt() % 29) * 10); // 50
         for (i = 0; i < 30; i++) {
             flag[i] = 0;
         }
-        System.out.println("PTR: " + PTR); // 24
-        flag[PTR / 10] = 1; // 24 = 1
+        System.out.println("PTR: " + PTR); // 50
+        flag[PTR / 10] = 1; // flag[5] = 1
         for (i = 0; i < 300; i++) {
             for (j = 0; j < 4; j++) {
                 M[i][j] = '\0';
@@ -427,7 +461,8 @@ public class OS {
             IR[i] = '\0';
             R[i] = '\0';
         }
-        C = IC = VA = RA = SI = PI = TI = TTC = LLC = 0;
+        C = IC = VA = RA = SI = PI = TI = TTC = LLC = sRA = 0;
+        kio = -1;
     }
 
     public void load() {
@@ -436,9 +471,9 @@ public class OS {
                 System.out.println(line);
                 if (line.contains("$AMJ")) {
                     System.out.println("Found $AMJ");
-                    pcb.jobid = line.substring(4, 8);
-                    pcb.ttl = Integer.parseInt(line.substring(8, 12));
-                    pcb.tll = Integer.parseInt(line.substring(12, 16));
+                    pcb.jobid = line.substring(4, 8); // 0202
+                    pcb.ttl = Integer.parseInt(line.substring(8, 12)); // 0017
+                    pcb.tll = Integer.parseInt(line.substring(12, 16)); // 0005
 
                     initialize();
                     allocate();
@@ -446,6 +481,7 @@ public class OS {
                     startExecution();
                 }
             }
+            fwrite.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
