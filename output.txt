@@ -2,8 +2,12 @@
 **
 ***
 **
-*
-SI: 3 PI: 0 TI: 0TTC: 13 LLC: 5
+2: Line limit exceeded. Program terminated abnormally.SI: 2 PI: 0 TI: 1TTC: 13 LLC: 5
+
+2: Line limit exceeded. Program terminated abnormally.SI: 2 PI: 0 TI: 1TTC: 13 LLC: 5
+
+
+SI: 3 PI: 0 TI: 1TTC: 13 LLC: 5
 
 A MAN A PLAN A CANAL PANAMA 
 SI: 3 PI: 0 TI: 0TTC: 21 LLC: 1

@@ -141,12 +141,10 @@ public class OS {
                     System.out.println("Going to call write");
                     write();
                 } else if (TI == 2) {
-                    write();
                     System.out.println("3: Time limit exceeded. Program terminated abnormally.");
                     fwrite.write("3: Time limit exceeded. Program terminated abnormally.");
                     endProgram();
                 } else if (TI == 1) {
-                    write();
                     System.out.println("2: Line limit exceeded. Program terminated abnormally.");
                     fwrite.write("2: Line limit exceeded. Program terminated abnormally.");
                     endProgram();
@@ -298,12 +296,12 @@ public class OS {
                     TTC = TTC + 1; // 3
                     if (LLC > pcb.tll) {
                         System.out.println("Inside LLC < tll");
-                        TI = 0;
+                        TI = 1;
                         MOS();
                     }
                     if (TTC > pcb.ttl) {
                         System.out.println("Inside TTC < ttl");
-                        TI = 1;
+                        TI = 2;
                         MOS();
                     } else {
                         SI = 2;
