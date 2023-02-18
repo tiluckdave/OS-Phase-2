@@ -1,14 +1,7 @@
 *
-**
-***
-**
-2: Line limit exceeded. Program terminated abnormally.SI: 2 PI: 0 TI: 1TTC: 13 LLC: 5
+4: Opcode Error. Program terminated abnormally.
+SI: 0 PI: 1 TI: 0TTC: 3 LLC: 1
 
-2: Line limit exceeded. Program terminated abnormally.SI: 2 PI: 0 TI: 1TTC: 13 LLC: 5
-
-
-SI: 3 PI: 0 TI: 1TTC: 13 LLC: 5
-
-A MAN A PLAN A CANAL PANAMA 
-SI: 3 PI: 0 TI: 0TTC: 21 LLC: 1
+6: Invalid Page fault. Program terminated abnormally.
+SI: 0 PI: 3 TI: 0TTC: 14 LLC: 0
 

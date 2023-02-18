@@ -5,7 +5,6 @@ import java.util.*;
 import java.lang.*;
 
 public class OS {
-
     private static char[][] M = new char[300][4];
     private char[] buffer = new char[40];
     private static Integer[] flag = new Integer[30];
@@ -118,14 +117,22 @@ public class OS {
         try {
             if (PI == 1) {
                 System.out.println("4: Opcode Error. Program terminated abnormally.");
-                fwrite.write("4: Opcode Error. Program terminated abnormally.");
+                fwrite.write("4: Opcode Error. Program terminated abnormally.\n");
                 endProgram();
             } else if (PI == 2) {
                 System.out.println("5: Oprand Error. Program terminated abnormally.");
-                fwrite.write("5: Oprand Error. Program terminated abnormally.");
+                fwrite.write("5: Oprand Error. Program terminated abnormally.\n");
+                endProgram();
+            } else if (PI == 3) {
+                System.out.println("6: Invalid Page fault. Program terminated abnormally.");
+                fwrite.write("6: Invalid Page fault. Program terminated abnormally.\n");
                 endProgram();
             }
-
+            if (TI == 2) {
+                System.out.println("3: Time limit exceeded. Program terminated abnormally.");
+                fwrite.write("3: Time limit exceeded. Program terminated abnormally.\n");
+                endProgram();
+            }
             if (SI == 3) {
                 endProgram();
             } else if (SI == 1) {
@@ -133,7 +140,11 @@ public class OS {
                     read();
                 } else if (TI == 2) {
                     System.out.println("3: Time limit exceeded. Program terminated abnormally.");
-                    fwrite.write("3: Time limit exceeded. Program terminated abnormally.");
+                    fwrite.write("3: Time limit exceeded. Program terminated abnormally.\n");
+                    endProgram();
+                } else if (TI == 1) {
+                    System.out.println("2: Line limit exceeded. Program terminated abnormally.");
+                    fwrite.write("2: Line limit exceeded. Program terminated abnormally.\n");
                     endProgram();
                 }
             } else if (SI == 2) {
@@ -141,12 +152,13 @@ public class OS {
                     System.out.println("Going to call write");
                     write();
                 } else if (TI == 2) {
+                    write();
                     System.out.println("3: Time limit exceeded. Program terminated abnormally.");
-                    fwrite.write("3: Time limit exceeded. Program terminated abnormally.");
+                    fwrite.write("3: Time limit exceeded. Program terminated abnormally.\n");
                     endProgram();
                 } else if (TI == 1) {
                     System.out.println("2: Line limit exceeded. Program terminated abnormally.");
-                    fwrite.write("2: Line limit exceeded. Program terminated abnormally.");
+                    fwrite.write("2: Line limit exceeded. Program terminated abnormally.\n");
                     endProgram();
                 }
             }
@@ -157,6 +169,7 @@ public class OS {
 
     public void endProgram() {
         dispMemo();
+        endProgram = true;
         try {
             fwrite.write("SI: " + SI + " PI: " + PI + " TI: " + TI + "TTC: " + TTC + " LLC: " + LLC);
             System.out.println("SI: " + SI + " PI: " + PI + " TI: " + TI + "TTC: " + TTC + " LLC: " + LLC);
@@ -174,9 +187,12 @@ public class OS {
         try {
             line = fread.readLine(); // *
             buffer = line.toCharArray();
-            // convert M[RA][2] and M[RA][3] to integer
-            // no = Integer.parseInt(String.valueOf(M[RA][2]) + String.valueOf(M[RA][3]));
-            // no = no * 10; // 210
+            if (line.contains("$END")) {
+                System.out.println("1: Out Of Data. Program terminated abnormally.");
+                fwrite.write("1: Out Of Data. Program terminated abnormally.\n");
+                endProgram();
+                return;
+            }
             no = sRA;
             int k = 0;
 
@@ -190,7 +206,6 @@ public class OS {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        dispMemo();
     }
 
     public void write() {
@@ -231,12 +246,17 @@ public class OS {
 
         if (M[RA][3] == '*') {
             System.out.println("Page fault occur");
+
+            if (IR[0] == 'P' || IR[0] == 'L' || IR[0] == 'C') {
+                PI = 3;
+                MOS();
+                return;
+            }
             pos = Math.abs((rd.nextInt() % 29) * 10); // 160
             while (flag[pos / 10] != 0) {
                 pos = Math.abs((rd.nextInt() % 29) * 10);
             }
             flag[pos / 10] = 1; // 16 = 1
-
             str = Integer.toString(pos).toCharArray(); // 160
             if (pos / 100 == 0) {
                 M[RA][2] = '0';
@@ -245,13 +265,8 @@ public class OS {
                 M[RA][2] = str[0]; // 12 -> **1*
                 M[RA][3] = str[1]; // 12 -> **16
             }
-
-            PI = 3;
-
         }
-
         if (RA > PTR + 10) {
-            // System.out.println("Segmentation fault occur");
             PI = 2;
             MOS();
         }
@@ -262,8 +277,6 @@ public class OS {
 
     public void examine() {
         char ch = IR[0]; // S
-        PI = 0;
-
         switch (ch) {
             case 'G':
                 System.out.println("SI:" + SI + " TI:" + TI + " PI:" + PI + "TTC: " + TTC + " LLC: " + LLC);
@@ -281,6 +294,7 @@ public class OS {
                     }
                 }
                 System.out.println("SI:" + SI + " TI:" + TI + " PI:" + PI + "TTC: " + TTC + " LLC: " + LLC);
+                SI = PI = TI = 0;
                 break;
             case 'P':
                 SI = 2;
@@ -315,6 +329,7 @@ public class OS {
                     }
                 }
                 System.out.println("SI:" + SI + " TI:" + TI + " PI:" + PI + "TTC: " + TTC + " LLC: " + LLC);
+                SI = PI = TI = 0;
                 break;
             case 'L':
                 System.out.println("SI:" + SI + " TI:" + TI + " PI:" + PI + "TTC: " + TTC + " LLC: " + LLC);
@@ -426,8 +441,17 @@ public class OS {
                     VA = Integer.parseInt(String.valueOf(IR).substring(2, 4)); // 20
                     System.out.println("VA: " + VA);
                     addMap();
+                    if (endProgram) {
+                        break;
+                    }
                     examine();
                 }
+                if (endProgram) {
+                    break;
+                }
+            }
+            if (endProgram) {
+                break;
             }
         }
     }
@@ -438,6 +462,7 @@ public class OS {
     }
 
     public void initialize() {
+        endProgram = false;
         int i, j;
         PTR = Math.abs((rd.nextInt() % 29) * 10); // 50
         for (i = 0; i < 30; i++) {
