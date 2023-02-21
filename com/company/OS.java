@@ -119,20 +119,26 @@ public class OS {
                 System.out.println("4: Opcode Error. Program terminated abnormally.");
                 fwrite.write("4: Opcode Error. Program terminated abnormally.\n");
                 endProgram();
+                return;
             } else if (PI == 2) {
                 System.out.println("5: Oprand Error. Program terminated abnormally.");
                 fwrite.write("5: Oprand Error. Program terminated abnormally.\n");
                 endProgram();
+                return;
             } else if (PI == 3) {
                 System.out.println("6: Invalid Page fault. Program terminated abnormally.");
                 fwrite.write("6: Invalid Page fault. Program terminated abnormally.\n");
                 endProgram();
+                return;
             }
+
             if (TI == 2) {
                 System.out.println("3: Time limit exceeded. Program terminated abnormally.");
                 fwrite.write("3: Time limit exceeded. Program terminated abnormally.\n");
                 endProgram();
+                return;
             }
+
             if (SI == 3) {
                 endProgram();
             } else if (SI == 1) {
@@ -142,10 +148,12 @@ public class OS {
                     System.out.println("3: Time limit exceeded. Program terminated abnormally.");
                     fwrite.write("3: Time limit exceeded. Program terminated abnormally.\n");
                     endProgram();
+                    return;
                 } else if (TI == 1) {
                     System.out.println("2: Line limit exceeded. Program terminated abnormally.");
                     fwrite.write("2: Line limit exceeded. Program terminated abnormally.\n");
                     endProgram();
+                    return;
                 }
             } else if (SI == 2) {
                 if (TI == 0) {
@@ -156,12 +164,15 @@ public class OS {
                     System.out.println("3: Time limit exceeded. Program terminated abnormally.");
                     fwrite.write("3: Time limit exceeded. Program terminated abnormally.\n");
                     endProgram();
+                    return;
                 } else if (TI == 1) {
                     System.out.println("2: Line limit exceeded. Program terminated abnormally.");
                     fwrite.write("2: Line limit exceeded. Program terminated abnormally.\n");
                     endProgram();
+                    return;
                 }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -171,8 +182,8 @@ public class OS {
         dispMemo();
         endProgram = true;
         try {
-            fwrite.write("SI: " + SI + " PI: " + PI + " TI: " + TI + "TTC: " + TTC + " LLC: " + LLC);
-            System.out.println("SI: " + SI + " PI: " + PI + " TI: " + TI + "TTC: " + TTC + " LLC: " + LLC);
+            fwrite.write("SI: " + SI + " PI: " + PI + " TI: " + TI + " TTC: " + TTC + " LLC: " + LLC);
+            System.out.println("SI: " + SI + " PI: " + PI + " TI: " + TI + " TTC: " + TTC + " LLC: " + LLC);
             fwrite.newLine();
             fwrite.newLine();
             // fwrite.close();
@@ -435,19 +446,30 @@ public class OS {
                 for (int k = 0; k < 4; k++) {
                     IR[k] = M[no * 10 + j][k];
                 } // IR = GD30
-                if (IR[0] != '\0') {
-                    System.out.println("IR: " + String.valueOf(IR).trim());
+                if (Character.isDigit(IR[2]) && Character.isDigit(IR[3])) {
+                    if (IR[0] != '\0') {
+                        System.out.println("IR: " + String.valueOf(IR).trim());
 
-                    VA = Integer.parseInt(String.valueOf(IR).substring(2, 4)); // 20
-                    System.out.println("VA: " + VA);
-                    addMap();
+                        VA = Integer.parseInt(String.valueOf(IR).substring(2, 4)); // 20
+                        System.out.println("VA: " + VA);
+                        addMap();
+                        if (endProgram) {
+                            break;
+                        }
+                        examine();
+                        if (endProgram) {
+                            break;
+                        }
+                    }
                     if (endProgram) {
                         break;
                     }
-                    examine();
-                }
-                if (endProgram) {
-                    break;
+                } else {
+                    PI = 2;
+                    MOS();
+                    if (endProgram) {
+                        break;
+                    }
                 }
             }
             if (endProgram) {
